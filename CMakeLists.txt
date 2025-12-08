@@ -7,6 +7,11 @@ set(CMAKE_CXX_STANDARD 20)
 
 find_package(Vulkan COMPONENTS glslangValidator)
 
+if (APPLE)
+    # Suppress clang's poison-system-directories warning when third-party deps add /usr/local/include
+    add_compile_options(-Wno-poison-system-directories)
+endif()
+
 if (WIN32 OR APPLE)
     FetchContent_Declare(
             glfw

@@ -15,6 +15,8 @@
 #include "vulkan/Utils.h"
 
 #include <spdlog/spdlog.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
 void Renderer::initialize() {
     initializeVulkan();
@@ -34,13 +36,28 @@ void Renderer::handleInput() {
     auto translation = window->getCursorTranslation();
     auto keys = window->getKeys(); // W, A, S, D
 
+    // 切换自动旋转（R键）
+    static bool rKeyPressedLastFrame = false;
+    bool rKeyPressed = window->isKeyPressed(GLFW_KEY_R);
+    if (rKeyPressed && !rKeyPressedLastFrame) {
+        autoRotate = !autoRotate;
+        spdlog::info("Auto-rotation: {} (Speed: {:.2f} deg/frame)", autoRotate ? "ON" : "OFF", autoRotateSpeed);
+    }
+    rKeyPressedLastFrame = rKeyPressed;
+
     if ((!configuration.enableGui || (!guiManager.wantCaptureMouse() && !guiManager.mouseCapture)) && window->
         getMouseButton()[0]) {
         window->mouseCapture(true);
         guiManager.mouseCapture = true;
     }
 
-    // rotate camera
+    // 自动旋转点云本身（围绕Y轴，即高度轴）
+    if (autoRotate) {
+        float rotationAngle = glm::radians(autoRotateSpeed);
+        sceneRotation = glm::rotate(sceneRotation, rotationAngle, glm::vec3(0.0f, 0.0f, 1.0f));
+    }
+
+    // rotate camera (正常响应鼠标)
     if (!configuration.enableGui || guiManager.mouseCapture) {
         if (translation[0] != 0.0 || translation[1] != 0.0) {
             camera.rotation = glm::rotate(camera.rotation, static_cast<float>(translation[0]) * 0.005f,
@@ -722,6 +739,9 @@ void Renderer::updateUniforms() {
     data.width = width;
     data.height = height;
     data.camera_position = glm::vec4(camera.position, 1.0f);
+
+    // 模型矩阵：应用场景旋转
+    data.model_mat = glm::mat4_cast(sceneRotation);
 
     auto rotation = glm::mat4_cast(camera.rotation);
     auto translation = glm::translate(glm::mat4(1.0f), camera.position);

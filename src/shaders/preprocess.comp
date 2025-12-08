@@ -15,6 +15,7 @@ layout (std140, set = 1, binding = 0) uniform Params {
     vec4 camera_position;
     mat4 proj_mat;
     mat4 view_mat;
+    mat4 model_mat;  // 模型变换矩阵
     uint width;
     uint height;
     float tan_fovx;
@@ -53,11 +54,16 @@ mat2 compute_cov2d(vec3 cam) {
     uint index = gl_GlobalInvocationID.x;
     mat3 J = get_projection_jacobian_approx(cam);
     mat3 W = transpose(mat3(view_mat));
-    mat3 Sigma = mat3(
+
+    // 将协方差从模型空间变换到世界空间
+    mat3 model_rot = mat3(model_mat); // 仅取旋转部分
+    mat3 Sigma_local = mat3(
         cov3ds[index * 6], cov3ds[index * 6 + 1], cov3ds[index * 6 + 2],
         cov3ds[index * 6 + 1], cov3ds[index * 6 + 3], cov3ds[index * 6 + 4],
         cov3ds[index * 6 + 2], cov3ds[index * 6 + 4], cov3ds[index * 6 + 5]
     );
+    mat3 Sigma = model_rot * Sigma_local * transpose(model_rot);
+
     mat3 T = W * J;
     mat3 cov2d = transpose(T) * Sigma * T;
     cov2d[0][0] += 0.3f;
@@ -73,7 +79,8 @@ vec3 get_sh_vec3(uint ind) {
 vec3 compute_sh() {
     uint index = gl_GlobalInvocationID.x;
 
-    vec3 ray_direction = vertices[index].position.xyz - camera_position.xyz;
+    vec3 world_pos = (model_mat * vertices[index].position).xyz;
+    vec3 ray_direction = world_pos - camera_position.xyz;
     ray_direction /= length(ray_direction);
     float x = ray_direction.x, y = ray_direction.y, z = ray_direction.z;
 
@@ -127,11 +134,12 @@ void main() {
     attr[index].color_radii.w = 0.0;
     tiles_overlap[index] = 0;
 
-    vec4 p_hom = proj_mat * vertices[index].position;
+    vec4 p_world = model_mat * vertices[index].position;
+    vec4 p_hom = proj_mat * p_world;
     float p_w = 1.0f / p_hom.w;
     vec3 ndc = vec3(p_hom.xyz * p_w);
 
-    vec4 p_view = view_mat * vertices[index].position;
+    vec4 p_view = view_mat * p_world;
     if (p_view.z <= 0.2f) {
         return;
     }

@@ -21,6 +21,9 @@ public:
 
     virtual std::array<bool, 7> getKeys() { return {false, false, false, false, false, false, false}; }
 
+    // Check if a specific key is pressed (GLFW key code)
+    virtual bool isKeyPressed(int keyCode) { return false; }
+
     virtual void mouseCapture(bool capture) { }
 
     virtual bool tick() { return false; };

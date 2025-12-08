@@ -59,10 +59,14 @@ std::array<bool, 7> GLFWWindow::getKeys() {
         glfwGetKey(static_cast<GLFWwindow *>(window), GLFW_KEY_A) == GLFW_PRESS,
         glfwGetKey(static_cast<GLFWwindow *>(window), GLFW_KEY_S) == GLFW_PRESS,
         glfwGetKey(static_cast<GLFWwindow *>(window), GLFW_KEY_D) == GLFW_PRESS,
-        glfwGetKey(static_cast<GLFWwindow *>(window), GLFW_KEY_SPACE) == GLFW_PRESS,
-        glfwGetKey(static_cast<GLFWwindow *>(window), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS,
+        glfwGetKey(static_cast<GLFWwindow *>(window), GLFW_KEY_E) == GLFW_PRESS,  // E键 = 向上
+        glfwGetKey(static_cast<GLFWwindow *>(window), GLFW_KEY_Q) == GLFW_PRESS,  // Q键 = 向下
         glfwGetKey(static_cast<GLFWwindow *>(window), GLFW_KEY_ESCAPE) == GLFW_PRESS
     };
+}
+
+bool GLFWWindow::isKeyPressed(int keyCode) {
+    return glfwGetKey(static_cast<GLFWwindow *>(window), keyCode) == GLFW_PRESS;
 }
 
 void GLFWWindow::mouseCapture(bool capture) {

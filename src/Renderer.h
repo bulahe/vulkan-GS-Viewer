@@ -22,6 +22,7 @@ public:
         glm::vec4 camera_position;
         glm::mat4 proj_mat;
         glm::mat4 view_mat;
+        glm::mat4 model_mat;  // 模型变换矩阵，用于旋转点云
         uint32_t width;
         uint32_t height;
         float tan_fovx;
@@ -83,6 +84,11 @@ public:
         .nearPlane = 0.1f,
         .farPlane = 1000.0f
     };
+
+    // 自动旋转设置（旋转点云本身，而不是相机）
+    bool autoRotate = false;
+    float autoRotateSpeed = 0.5f; // 每帧旋转的角度（度）
+    glm::quat sceneRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); // 场景旋转四元数
 
 private:
     VulkanSplatting::RendererConfiguration configuration;

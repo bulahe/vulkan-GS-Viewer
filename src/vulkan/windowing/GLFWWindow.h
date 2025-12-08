@@ -19,6 +19,8 @@ public:
 
     std::array<bool, 7> getKeys() override;
 
+    bool isKeyPressed(int keyCode) override;
+
     void mouseCapture(bool capture) override;
 
     bool tick() override;

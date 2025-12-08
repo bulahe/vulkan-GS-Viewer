@@ -87,10 +87,11 @@ void GUIManager::buildGui() {
     ImGui::SetNextWindowPos(ImVec2(10, 310), ImGuiCond_FirstUseEver);
     ImGui::Begin("Controls", &popen, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("WASD: move");
-    ImGui::Text("Space: up");
-    ImGui::Text("Shift: down");
+    ImGui::Text("E: up");
+    ImGui::Text("Q: down");
     ImGui::Text("Left click: capture mouse");
     ImGui::Text("ESC: release mouse");
+    ImGui::Text("R: toggle auto-rotation");
     ImGui::Text("Mouse captured: %s", mouseCapture ? "true" : "false");
     ImGui::End();
 
