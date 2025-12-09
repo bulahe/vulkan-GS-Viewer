@@ -15,6 +15,7 @@
 #include "GUIManager.h"
 #include "vulkan/ImguiManager.h"
 #include "vulkan/QueryManager.h"
+#include "CameraController.h"  // 需要 Camera 类型
 
 class Renderer {
 public:
@@ -38,17 +39,8 @@ public:
         uint32_t __padding[1];
     };
 
-    struct Camera {
-        glm::vec3 position;
-        glm::quat rotation;
-        float fov;
-        float nearPlane;
-        float farPlane;
-
-        void translate(glm::vec3 translation) {
-            position += rotation * translation;
-        }
-    };
+    // 使用 CameraController 中定义的 Camera 类型
+    using Camera = ::Camera;
 
     struct RadixSortPushConstants {
         uint32_t g_num_elements; // == NUM_ELEMENTS
@@ -78,7 +70,7 @@ public:
     ~Renderer();
 
     Camera camera {
-        .position = glm::vec3(0.0f, 0.0f, 0.0f),
+        .position = glm::vec3(0.0f, -1.0f, 0.0f),
         .rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
         .fov = 45.0f,
         .nearPlane = 0.1f,
@@ -98,6 +90,7 @@ private:
     std::shared_ptr<GSScene> scene;
     std::shared_ptr<QueryManager> queryManager = std::make_shared<QueryManager>();
     GUIManager guiManager {};
+    std::unique_ptr<CameraController> cameraController;
 
     std::shared_ptr<ComputePipeline> preprocessPipeline;
     std::shared_ptr<ComputePipeline> renderPipeline;

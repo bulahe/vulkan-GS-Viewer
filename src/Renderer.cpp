@@ -30,72 +30,14 @@ void Renderer::initialize() {
     createRenderPipeline();
     createCommandPool();
     recordPreprocessCommandBuffer();
+    
+    // 创建 CameraController
+    cameraController = std::make_unique<CameraController>(window, guiManager, configuration);
 }
 
 void Renderer::handleInput() {
-    auto translation = window->getCursorTranslation();
-    auto keys = window->getKeys(); // W, A, S, D
-
-    // 切换自动旋转（R键）
-    static bool rKeyPressedLastFrame = false;
-    bool rKeyPressed = window->isKeyPressed(GLFW_KEY_R);
-    if (rKeyPressed && !rKeyPressedLastFrame) {
-        autoRotate = !autoRotate;
-        spdlog::info("Auto-rotation: {} (Speed: {:.2f} deg/frame)", autoRotate ? "ON" : "OFF", autoRotateSpeed);
-    }
-    rKeyPressedLastFrame = rKeyPressed;
-
-    if ((!configuration.enableGui || (!guiManager.wantCaptureMouse() && !guiManager.mouseCapture)) && window->
-        getMouseButton()[0]) {
-        window->mouseCapture(true);
-        guiManager.mouseCapture = true;
-    }
-
-    // 自动旋转点云本身（围绕Y轴，即高度轴）
-    if (autoRotate) {
-        float rotationAngle = glm::radians(autoRotateSpeed);
-        sceneRotation = glm::rotate(sceneRotation, rotationAngle, glm::vec3(0.0f, 0.0f, 1.0f));
-    }
-
-    // rotate camera (正常响应鼠标)
-    if (!configuration.enableGui || guiManager.mouseCapture) {
-        if (translation[0] != 0.0 || translation[1] != 0.0) {
-            camera.rotation = glm::rotate(camera.rotation, static_cast<float>(translation[0]) * 0.005f,
-                                          glm::vec3(0.0f, -1.0f, 0.0f));
-            camera.rotation = glm::rotate(camera.rotation, static_cast<float>(translation[1]) * 0.005f,
-                                          glm::vec3(-1.0f, 0.0f, 0.0f));
-        }
-    }
-
-    // move camera
-    if (!configuration.enableGui || !guiManager.wantCaptureKeyboard()) {
-        glm::vec3 direction = glm::vec3(0.0f, 0.0f, 0.0f);
-        if (keys[0]) {
-            direction += glm::vec3(0.0f, 0.0f, -1.0f);
-        }
-        if (keys[1]) {
-            direction += glm::vec3(-1.0f, 0.0f, 0.0f);
-        }
-        if (keys[2]) {
-            direction += glm::vec3(0.0f, 0.0f, 1.0f);
-        }
-        if (keys[3]) {
-            direction += glm::vec3(1.0f, 0.0f, 0.0f);
-        }
-        if (keys[4]) {
-            direction += glm::vec3(0.0f, 1.0f, 0.0f);
-        }
-        if (keys[5]) {
-            direction += glm::vec3(0.0f, -1.0f, 0.0f);
-        }
-        if (keys[6]) {
-            window->mouseCapture(false);
-            guiManager.mouseCapture = false;
-        }
-        if (direction != glm::vec3(0.0f, 0.0f, 0.0f)) {
-            direction = glm::normalize(direction);
-            camera.position += (glm::mat4_cast(camera.rotation) * glm::vec4(direction, 1.0f)).xyz() * 0.3f;
-        }
+    if (cameraController) {
+        cameraController->handleInput(camera, autoRotate, autoRotateSpeed, sceneRotation);
     }
 }
 
